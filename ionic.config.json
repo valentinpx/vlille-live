@@ -1,0 +1,8 @@
+{
+  "name": "Vlille Live",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite",
+  "id": "5f210d9d"
+}
