@@ -7,21 +7,15 @@
     </ion-header>
     <ion-content :fullscreen="true">
       <div id="map" style="height: 100%;"></div>
-      <ion-modal
-      id="modal"
-      :is-open="modal.open"
-      @didDismiss="modal.open = false"
-      :initial-breakpoint="0.25"
-      :breakpoints="[0, 0.25]"
-      :expand-to-scroll="false"
-    >{{ JSON.stringify(modal) }}</ion-modal>
+      <StationModal :station="station_modal" @close="closeModal" />
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonModal, onIonViewDidEnter } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, onIonViewDidEnter } from '@ionic/vue';
+import StationModal from '@/components/StationModal.vue';
 import { Geolocation } from '@capacitor/geolocation';
 import axios from 'axios';	
 import L from 'leaflet';
@@ -37,16 +31,20 @@ type Station = {
 };
 
 
-const modal = ref({
+const interval = 300000;
+const defaultPos = { latitude: 50.62925, longitude: 3.057256 };
+const station_modal = ref({
   open: false,
   name: "",
   bikes: 0,
   spots_available: 0,
   update: new Date(),
+  lat: defaultPos.latitude,
+  lon: defaultPos.longitude,
 })
 const stations = ref<Record<string, Station>>({});
-const interval = 300000;
 const markers: Record<string, L.Marker> = {};
+let here_marker: L.Marker | null = null;
 let map: L.Map | null = null;
 
 async function refreshStation() {
@@ -72,18 +70,43 @@ async function refreshStation() {
     });
 }
 
-function openModal(id: string | number, name: string) {
+function closeModal() {
+  here_marker?.setZIndexOffset(-1000);
+  station_modal.value.open = false
+  map?.setZoom(16);
+}
+
+function openModal(station: Station) {
+  const s = stations.value[station.station_id]
+
   if (document.activeElement instanceof HTMLElement) {
     document.activeElement.blur();
   }
-  modal.value = {
+  map?.setView([station.lat, station.lon], 17);
+  refreshStation().then(() => {
+    if (here_marker) {
+      here_marker.setLatLng([station.lat, station.lon]);
+      here_marker.setZIndexOffset(1000);
+    } else {
+      here_marker = L.marker([station.lat, station.lon], {
+        icon: L.icon({
+          iconUrl: "/marker-here.png",
+          iconSize: [64, 64],
+          iconAnchor: [32, 64],
+          popupAnchor: [0, -64]
+        })
+      }).addTo(map!);
+    }
+  });
+  station_modal.value = {
     open: true,
-    name: name,
-    bikes: stations.value[id].num_bikes_available,
-    spots_available: stations.value[id].num_docks_available,
-    update: new Date(stations.value[id].last_reported * 1000),
+    name: station.name || `Station ${station.station_id}`,
+    bikes: s.num_bikes_available,
+    spots_available: s.num_docks_available,
+    update: new Date(s.last_reported * 1000),
+    lat: station.lat,
+    lon: station.lon,
   };
-  refreshStation();
 }
 
 function loadMarkers(map: L.Map) {
@@ -92,7 +115,7 @@ function loadMarkers(map: L.Map) {
       response.data.data.stations.map((station: any) => {
         const marker = L.marker([station.lat, station.lon]).addTo(map);
         marker.on('click', () => {
-          openModal(station.station_id, station.name);
+          openModal(station);
         });
         markers[station.station_id] = marker;
         return marker;
@@ -105,7 +128,7 @@ function loadMarkers(map: L.Map) {
 
 onMounted(async () => {
   if (map) { return; }
-  const position = await Geolocation.getCurrentPosition().catch(() => ({ coords: { latitude: 50.62925, longitude: 3.057256 } }));
+  const position = await Geolocation.getCurrentPosition().catch(() => ({ coords: defaultPos }));
 
   map = L.map('map').setView([position.coords.latitude, position.coords.longitude], 16);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
