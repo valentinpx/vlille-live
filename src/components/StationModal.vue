@@ -23,16 +23,18 @@
           />
           <div class="card-text">
             <table>
-              <tr>
-                <td class="icon">🚲</td>
-                <td>Vélos</td>
-                <td class="number">{{ station.bikes }}</td>
-              </tr>
-              <tr>
-                <td class="icon">🅿️</td>
-                <td>Places</td>
-                <td class="number">{{ station.spots_available }}</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td class="icon">🚲</td>
+                  <td>Vélos</td>
+                  <td class="number">{{ station.bikes }}</td>
+                </tr>
+                <tr>
+                  <td class="icon">🅿️</td>
+                  <td>Places</td>
+                  <td class="number">{{ station.spots_available }}</td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </ion-card-content>
