@@ -1,12 +1,8 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>Tab 2</ion-title>
-      </ion-toolbar>
-    </ion-header>
     <ion-content :fullscreen="true">
-      <div id="map" style="height: 100%;"></div>
+      <SearchBar class="search-bar" @locate="refreshLocation" />
+      <div id="map" />
       <StationModal :station="station_modal" @close="closeModal" />
     </ion-content>
   </ion-page>
@@ -14,26 +10,20 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, onIonViewDidEnter } from '@ionic/vue';
-import StationModal from '@/components/StationModal.vue';
+import { IonPage, IonContent, onIonViewDidEnter } from '@ionic/vue';
 import { Geolocation } from '@capacitor/geolocation';
 import axios from 'axios';	
 import L from 'leaflet';
-
-
-type Station = {
-  station_id: string;
-  name: string;
-  num_bikes_available: number;
-  num_docks_available: number;
-  last_reported: number;
-  [key: string]: any;
-};
+import 'leaflet.markercluster';
+import { Station, StationModalType } from '@/types';
+import SearchBar from '@/components/SearchBar.vue';
+import StationModal from '@/components/StationModal.vue';
 
 
 const interval = 300000;
 const defaultPos = { latitude: 50.62925, longitude: 3.057256 };
-const station_modal = ref({
+const station_modal = ref<StationModalType>({
+  station_id: "",
   open: false,
   name: "",
   bikes: 0,
@@ -41,11 +31,30 @@ const station_modal = ref({
   update: new Date(),
   lat: defaultPos.latitude,
   lon: defaultPos.longitude,
-})
+});
 const stations = ref<Record<string, Station>>({});
 const markers: Record<string, L.Marker> = {};
 let here_marker: L.Marker | null = null;
 let map: L.Map | null = null;
+let markerCluster: L.MarkerClusterGroup;
+
+function refreshLocation() {
+  Geolocation.getCurrentPosition().catch(() => ({ coords: defaultPos })).then(position => {
+    map?.setView([position.coords.latitude, position.coords.longitude], 16);
+
+    L.marker(
+    [position.coords.latitude, position.coords.longitude],
+    {
+      icon: L.icon({
+        iconUrl: "/marker.png",
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      })
+    })
+    .addTo(map!);
+  });
+}
 
 async function refreshStation() {
   stations.value = await axios.get("https://media.ilevia.fr/opendata/station_status.json")
@@ -72,12 +81,13 @@ async function refreshStation() {
 
 function closeModal() {
   here_marker?.setZIndexOffset(-1000);
-  station_modal.value.open = false
+  here_marker?.setOpacity(0);
+  station_modal.value.open = false;
   map?.setZoom(16);
 }
 
 function openModal(station: Station) {
-  const s = stations.value[station.station_id]
+  const s = stations.value[station.station_id];
 
   if (document.activeElement instanceof HTMLElement) {
     document.activeElement.blur();
@@ -86,6 +96,7 @@ function openModal(station: Station) {
   refreshStation().then(() => {
     if (here_marker) {
       here_marker.setLatLng([station.lat, station.lon]);
+      here_marker.setOpacity(1);
       here_marker.setZIndexOffset(1000);
     } else {
       here_marker = L.marker([station.lat, station.lon], {
@@ -99,6 +110,7 @@ function openModal(station: Station) {
     }
   });
   station_modal.value = {
+    station_id: station.station_id,
     open: true,
     name: station.name || `Station ${station.station_id}`,
     bikes: s.num_bikes_available,
@@ -110,16 +122,19 @@ function openModal(station: Station) {
 }
 
 function loadMarkers(map: L.Map) {
+  markerCluster = L.markerClusterGroup();
   axios.get("https://media.ilevia.fr/opendata/station_information.json")
     .then(response => {
       response.data.data.stations.map((station: any) => {
-        const marker = L.marker([station.lat, station.lon]).addTo(map);
+        const marker = L.marker([station.lat, station.lon]);
         marker.on('click', () => {
           openModal(station);
         });
         markers[station.station_id] = marker;
+        markerCluster.addLayer(marker);
         return marker;
       });
+      map.addLayer(markerCluster);
     })
     .catch(error => {
       console.error("Error loading stations:", error);
@@ -128,24 +143,14 @@ function loadMarkers(map: L.Map) {
 
 onMounted(async () => {
   if (map) { return; }
-  const position = await Geolocation.getCurrentPosition().catch(() => ({ coords: defaultPos }));
 
-  map = L.map('map').setView([position.coords.latitude, position.coords.longitude], 16);
+  map = L.map('map');
+  refreshLocation();
+  map.removeControl(map.zoomControl);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap'
+    attribution: ' OpenStreetMap'
   }).addTo(map);
 
-  L.marker(
-    [position.coords.latitude, position.coords.longitude],
-    {
-      icon: L.icon({
-        iconUrl: "/marker.png",
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -32]
-      })
-    })
-    .addTo(map);
   loadMarkers(map);
 
   refreshStation();
@@ -159,3 +164,24 @@ onIonViewDidEnter(() => {
   }, 100);
 });
 </script>
+
+<style>
+#map {
+  height: 100vh;
+}
+
+.leaflet-control-attribution {
+  bottom: 20px;
+  padding-right: 15px;
+}
+
+.search-bar {
+  z-index: 500;
+  position: absolute;
+  top: 62px;
+}
+
+.search-bar input {
+  min-height: 50px !important;
+}
+</style>

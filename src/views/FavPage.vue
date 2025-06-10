@@ -12,12 +12,21 @@
         </ion-toolbar>
       </ion-header>
 
-      <ExploreContainer name="Tab 2 page" />
+      {{ JSON.stringify(favorites) }}
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/vue';
-import ExploreContainer from '@/components/ExploreContainer.vue';
+import { getCurrentInstance, ref } from 'vue';
+
+const storage = getCurrentInstance()?.appContext.config.globalProperties.$ionicStorage;
+const favorites = ref<string[]>([]);
+
+async function fetchFavorites() {
+  if (!storage) return;
+  favorites.value = await storage.get('favorites') || [];
+}
+fetchFavorites();
 </script>

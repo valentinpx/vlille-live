@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <ion-tabs>
-      <ion-router-outlet></ion-router-outlet>
+      <ion-router-outlet />
       <ion-tab-bar slot="bottom">
         <ion-tab-button tab="fav" href="/tabs/fav">
           <ion-icon aria-hidden="true" :icon="star" />
@@ -26,3 +26,16 @@
 import { IonTabBar, IonTabButton, IonTabs, IonLabel, IonIcon, IonPage, IonRouterOutlet } from '@ionic/vue';
 import { bicycle, settings, star } from 'ionicons/icons';
 </script>
+
+<style scoped>
+ion-tab-bar {
+  bottom: 50px;
+  position: relative;
+  border-radius: 16px;
+  height: 64px;
+  width: 90%;
+  margin: 0 auto;
+  padding: 0;
+  --background: var(-ion-color-primary-contrast);
+}
+</style>

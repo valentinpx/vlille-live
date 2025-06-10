@@ -3,8 +3,8 @@
     id="modal"
     :is-open="station.open"
     @didDismiss="$emit('close')"
-    :initial-breakpoint="0.4"
-    :breakpoints="[0, 0.4]"
+    :initial-breakpoint="0.45"
+    :breakpoints="[0, 0.45]"
     :expand-to-scroll="false"
   >
     <ion-content class="ion-padding">
@@ -62,18 +62,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, getCurrentInstance, onBeforeUpdate } from 'vue';
 import { IonModal, IonContent, IonCard, IonCardContent, IonImg, IonButton, IonIcon } from '@ionic/vue';
 import { logoApple, navigate, star, starOutline } from 'ionicons/icons';
+import { StationModalType } from '@/types';
 
-defineProps<{ station: any }>();
 defineEmits(['close']);
-
+const favKey = 'favorites';
+const storage = getCurrentInstance()?.appContext.config.globalProperties.$ionicStorage;
+const { station } = defineProps<{ station: StationModalType }>();
 const fav = ref(false);
 
-function toggleFav() {
+onBeforeUpdate(() => {
+  fetchFav();
+});
+
+async function toggleFav() {
+  if (!storage) return;
+  let favorites: string[] = await storage.get(favKey) || [];
   fav.value = !fav.value;
-  //storage
+  if (fav.value) {
+    if (!favorites.includes(station.station_id)) {
+      favorites.push(station.station_id);
+    }
+  } else {
+    favorites = favorites.filter((sid) => sid !== station.station_id);
+  }
+  await storage.set(favKey, favorites);
+}
+
+async function fetchFav() {
+  if (!storage) return;
+  fav.value = (await storage.get(favKey) || []).includes(station.station_id);
 }
 
 function getMarkerImg(bikes: number, spots: number) {
@@ -135,7 +155,7 @@ ion-card-content {
 
 .card-text {
   margin: auto;
-  color: --ion-color-primary-contrast;
+  color: var(--ion-color-primary-primary);
   font-size: 20px;
   font-family: Arial;
   text-transform: uppercase;
