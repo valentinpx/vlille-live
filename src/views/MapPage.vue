@@ -1,7 +1,13 @@
 <template>
   <ion-page>
     <ion-content :fullscreen="true">
-      <SearchBar class="search-bar" @locate="refreshLocation" @goTo="openLocation" />
+      <SearchBar
+        class="search-bar"
+        :stations="baseStations"
+        @locate="refreshLocation"
+        @goTo="openLocation"
+        @openStation="openModal"
+      />
       <div id="map" />
       <StationModal :station="station_modal" @close="closeModal" />
     </ion-content>
@@ -34,6 +40,7 @@ const station_modal = ref<StationModalType>({
 });
 const stations = ref<Record<string, Station>>({});
 const markers: Record<string, L.Marker> = {};
+const baseStations = ref<Station[]>([]);
 let here_marker: L.Marker | null = null;
 let self_marker: L.Marker | null = null;
 let map: L.Map | null = null;
@@ -133,7 +140,8 @@ function loadMarkers(map: L.Map) {
   markerCluster = L.markerClusterGroup();
   axios.get("https://media.ilevia.fr/opendata/station_information.json")
     .then(response => {
-      response.data.data.stations.map((station: any) => {
+      baseStations.value = response.data.data.stations;
+      baseStations.value.map((station: any) => {
         const marker = L.marker([station.lat, station.lon]);
         marker.on('click', () => {
           openModal(station);
