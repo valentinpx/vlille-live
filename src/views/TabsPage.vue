@@ -34,6 +34,7 @@ ion-tab-bar {
   border-radius: 16px;
   height: 64px;
   width: 90%;
+  max-width: 750px;
   margin: 0 auto;
   padding: 0;
   --background: var(-ion-color-primary-contrast);

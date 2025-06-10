@@ -35,24 +35,29 @@ const station_modal = ref<StationModalType>({
 const stations = ref<Record<string, Station>>({});
 const markers: Record<string, L.Marker> = {};
 let here_marker: L.Marker | null = null;
+let self_marker: L.Marker | null = null;
 let map: L.Map | null = null;
 let markerCluster: L.MarkerClusterGroup;
+
 
 function refreshLocation() {
   Geolocation.getCurrentPosition().catch(() => ({ coords: defaultPos })).then(position => {
     map?.setView([position.coords.latitude, position.coords.longitude], 16);
 
-    L.marker(
-    [position.coords.latitude, position.coords.longitude],
-    {
-      icon: L.icon({
-        iconUrl: "/marker.png",
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -32]
-      })
-    })
-    .addTo(map!);
+    if (self_marker) {
+        self_marker.setLatLng([position.coords.latitude, position.coords.longitude]);
+    } else {
+      self_marker = L.marker(
+        [position.coords.latitude, position.coords.longitude],
+        {
+          icon: L.icon({
+            iconUrl: "/marker.png",
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
+          })
+        }).addTo(map!);
+    }
   });
 }
 
@@ -179,6 +184,9 @@ onIonViewDidEnter(() => {
   z-index: 500;
   position: absolute;
   top: 62px;
+  max-width: 750px;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .search-bar input {
