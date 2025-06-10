@@ -145,6 +145,10 @@ ion-img {
   margin: auto 0;
 }
 
+ion-content {
+  border-radius: 12px;
+}
+
 ion-card {
   margin: 20px 2px;
 }

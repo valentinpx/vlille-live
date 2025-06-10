@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <ion-content :fullscreen="true">
-      <SearchBar class="search-bar" @locate="refreshLocation" />
+      <SearchBar class="search-bar" @locate="refreshLocation" @goTo="openLocation" />
       <div id="map" />
       <StationModal :station="station_modal" @close="closeModal" />
     </ion-content>
@@ -40,15 +40,13 @@ let map: L.Map | null = null;
 let markerCluster: L.MarkerClusterGroup;
 
 
-function refreshLocation() {
-  Geolocation.getCurrentPosition().catch(() => ({ coords: defaultPos })).then(position => {
-    map?.setView([position.coords.latitude, position.coords.longitude], 16);
-
-    if (self_marker) {
-        self_marker.setLatLng([position.coords.latitude, position.coords.longitude]);
+function openLocation(location: { lat: number, lon: number }) {
+  map?.setView([location.lat, location.lon], 16);
+  if (self_marker) {
+        self_marker.setLatLng([location.lat, location.lon]);
     } else {
       self_marker = L.marker(
-        [position.coords.latitude, position.coords.longitude],
+        [location.lat, location.lon],
         {
           icon: L.icon({
             iconUrl: "/marker.png",
@@ -58,6 +56,11 @@ function refreshLocation() {
           })
         }).addTo(map!);
     }
+}
+
+function refreshLocation() {
+  Geolocation.getCurrentPosition().catch(() => ({ coords: defaultPos })).then(position => {
+    openLocation({ lat: position.coords.latitude, lon: position.coords.longitude });
   });
 }
 
@@ -171,25 +174,21 @@ onIonViewDidEnter(() => {
 </script>
 
 <style>
+.search-bar {
+  position: absolute;
+  z-index: 500;
+  top: 62px;
+  width: 90%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 #map {
-  height: 100vh;
+  height: 100%;
 }
 
 .leaflet-control-attribution {
   bottom: 20px;
   padding-right: 15px;
-}
-
-.search-bar {
-  z-index: 500;
-  position: absolute;
-  top: 62px;
-  max-width: 750px;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.search-bar input {
-  min-height: 50px !important;
 }
 </style>

@@ -1,23 +1,25 @@
 <template>
-  <ion-page>
+  <ion-page class="ion-page">
     <ion-tabs>
       <ion-router-outlet />
-      <ion-tab-bar slot="bottom">
-        <ion-tab-button tab="fav" href="/tabs/fav">
-          <ion-icon aria-hidden="true" :icon="star" />
-          <ion-label>Favoris</ion-label>
-        </ion-tab-button>
+      <div>
+        <ion-tab-bar slot="bottom">
+          <ion-tab-button tab="fav" href="/tabs/fav">
+            <ion-icon aria-hidden="true" :icon="star" />
+            <ion-label>Favoris</ion-label>
+          </ion-tab-button>
 
-        <ion-tab-button tab="map" href="/tabs/map">
-          <ion-icon aria-hidden="true" :icon="bicycle" />
-          <ion-label>Carte</ion-label>
-        </ion-tab-button>
+          <ion-tab-button tab="map" href="/tabs/map">
+            <ion-icon aria-hidden="true" :icon="bicycle" />
+            <ion-label>Carte</ion-label>
+          </ion-tab-button>
 
-        <ion-tab-button tab="settings" href="/tabs/settings">
-          <ion-icon aria-hidden="true" :icon="settings" />
-          <ion-label>Paramètres</ion-label>
-        </ion-tab-button>
-      </ion-tab-bar>
+          <ion-tab-button tab="settings" href="/tabs/settings">
+            <ion-icon aria-hidden="true" :icon="settings" />
+            <ion-label>Paramètres</ion-label>
+          </ion-tab-button>
+        </ion-tab-bar>
+      </div>
     </ion-tabs>
   </ion-page>
 </template>
@@ -28,15 +30,22 @@ import { bicycle, settings, star } from 'ionicons/icons';
 </script>
 
 <style scoped>
-ion-tab-bar {
+.ion-page {
+  height: 100vh;
+}
+
+div {
+  position: absolute;
   bottom: 50px;
-  position: relative;
-  border-radius: 16px;
+  width: 100%;
+}
+
+ion-tab-bar {
+  margin: auto;
+  border-radius: 12px;
   height: 64px;
   width: 90%;
   max-width: 750px;
-  margin: 0 auto;
-  padding: 0;
   --background: var(-ion-color-primary-contrast);
 }
 </style>
