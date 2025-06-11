@@ -13,7 +13,16 @@ export default defineConfig({
     legacy(),
     VitePWA({
       registerType: 'autoUpdate',
-      manifest: { lang: 'fr' }
+      manifest: {
+        lang: 'fr',
+        icons: [
+          {
+            src: '/icon.png',
+            sizes: '1024x1024',
+            type: 'image/png'
+          }
+        ]
+      }
     })
   ],
   resolve: {
