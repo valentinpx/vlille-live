@@ -136,9 +136,9 @@ function openModal(station: Station) {
   };
 }
 
-function loadMarkers(map: L.Map) {
+async function loadMarkers(map: L.Map) {
   markerCluster = L.markerClusterGroup();
-  axios.get("https://media.ilevia.fr/opendata/station_information.json")
+  await axios.get("https://media.ilevia.fr/opendata/station_information.json")
     .then(response => {
       baseStations.value = response.data.data.stations;
       baseStations.value.map((station: any) => {
@@ -167,10 +167,10 @@ onMounted(async () => {
     attribution: ' OpenStreetMap'
   }).addTo(map);
 
-  loadMarkers(map);
-
-  refreshStation();
-  setInterval(refreshStation, interval);
+  loadMarkers(map).then(() => {
+    refreshStation();
+    setInterval(refreshStation, interval);
+  });
 });
 
 onIonViewDidEnter(() => {
