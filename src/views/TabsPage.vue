@@ -42,6 +42,7 @@ div {
 
 ion-tab-bar {
   margin: auto;
+  padding: 0;
   border-radius: 12px;
   height: 64px;
   width: 90%;

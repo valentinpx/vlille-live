@@ -56,7 +56,7 @@ function openLocation(location: { lat: number, lon: number }) {
         [location.lat, location.lon],
         {
           icon: L.icon({
-            iconUrl: "/marker.png",
+            iconUrl: "/markers/me.png",
             iconSize: [32, 32],
             iconAnchor: [16, 32],
             popupAnchor: [0, -32]
@@ -76,9 +76,9 @@ async function refreshStation() {
     .then(response => {
       return response.data.data.stations.reduce((dict: { [x: string]: Station; }, station: Station) => {
         const newIcon = L.icon({
-          iconUrl: station.num_bikes_available === 0 ? "/marker-empty.png" :
-                   station.num_docks_available == 0 ? "/marker-full.png" :
-                   "/marker-station.png",
+          iconUrl: station.num_bikes_available === 0 ? "/markers/empty.png" :
+                   station.num_docks_available == 0 ? "/markers/full.png" :
+                   "/markers/station.png",
           iconSize: [64, 64],
           iconAnchor: [32, 64],
           popupAnchor: [0, -64]
@@ -116,7 +116,7 @@ function openModal(station: Station) {
     } else {
       here_marker = L.marker([station.lat, station.lon], {
         icon: L.icon({
-          iconUrl: "/marker-here.png",
+          iconUrl: "/markers/here.png",
           iconSize: [64, 64],
           iconAnchor: [32, 64],
           popupAnchor: [0, -64]

@@ -14,12 +14,44 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
+        id: 'vlille-live',
         lang: 'fr',
         icons: [
           {
-            src: '/icon.png',
+            src: '/icons/512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          },
+          {
+            src: '/icons/1024.png',
             sizes: '1024x1024',
             type: 'image/png'
+          }
+        ],
+        screenshots: [
+          {
+            src: '/screenshots/mobile/map.png',
+            sizes: '1179x2556',
+            type: 'image/png',
+            form_factor: 'narrow'
+          },
+          {
+            src: '/screenshots/mobile/station.png',
+            sizes: '1179x2556',
+            type: 'image/png',
+            form_factor: 'narrow'
+          },
+          {
+            src: '/screenshots/desktop/map.png',
+            sizes: '1920x970',
+            type: 'image/jpeg',
+            form_factor: 'wide'
+          },
+          {
+            src: '/screenshots/desktop/station.png',
+            sizes: '1920x970',
+            type: 'image/jpeg',
+            form_factor: 'wide'
           }
         ]
       }

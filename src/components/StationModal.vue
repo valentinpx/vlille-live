@@ -97,9 +97,9 @@ async function fetchFav() {
 }
 
 function getMarkerImg(bikes: number, spots: number) {
-  if (bikes === 0) return '/marker-empty-outline.png';
-  if (spots === 0) return '/marker-full-outline.png';
-  return '/marker-station-outline.png';
+  if (bikes === 0) return '/markers/empty-outline.png';
+  if (spots === 0) return '/markers/full-outline.png';
+  return '/markers/station-outline.png';
 }
 
 function formatDate(date: Date | string) {
