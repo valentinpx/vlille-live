@@ -39,35 +39,17 @@
 <script setup lang="ts">
 import { IonSearchbar, IonList, IonItem, IonLabel } from '@ionic/vue';
 import { locate, location, storefront, subway, leaf, business, bicycle } from 'ionicons/icons';
-import { defineEmits, ref } from 'vue';
+import { defineEmits, ref, inject } from 'vue';
 import { IonButton, IonIcon, IonSpinner } from '@ionic/vue';
-import { Station } from '@/types';
-import axios from 'axios';
-
-
-type SearchResult = {
-  place_id: number | string;
-  licence?: string;
-  osm_type?: string;
-  osm_id?: number;
-  lat: number | string;
-  lon: number | string;
-  class: string;
-  type?: string;
-  place_rank?: number;
-  importance?: number;
-  addresstype?: string;
-  name: string;
-  display_name: string;
-  boundingbox?: [string, string, string, string];
-  station?: Station;
-};
+import { Station, LocationSearchResult } from '@/types';
+import type { VLilleApiService } from '@/plugins/api';
 
 
 const emit = defineEmits(['locate', 'goTo', 'openStation']);
 const { stations } = defineProps<{ stations: Station[] }>();
+const vlilleApi = inject<VLilleApiService>('vlilleApi')!;
 const search = ref('');
-const results = ref<SearchResult[]>([]);
+const results = ref<LocationSearchResult[]>([]);
 const isLoading = ref(false);
 
 function getIcon(type: string): string {
@@ -87,7 +69,7 @@ function getIcon(type: string): string {
   }
 }
 
-function selectResult(result: SearchResult) {
+function selectResult(result: LocationSearchResult) {
   results.value = [];
   search.value = result.display_name;
   isLoading.value = false;
@@ -108,6 +90,8 @@ async function runSearch() {
   }
 
   isLoading.value = true;
+  
+  // Recherche dans les stations
   for (const station_id in stations) {
     const station = stations[station_id];
 
@@ -123,11 +107,16 @@ async function runSearch() {
       });
     }
   }
-  await axios.get(`https://nominatim.openstreetmap.org/search?q=${search.value}&countrycodes=fr&viewbox=3.278904,50.572686,2.812420,50.678252&format=json`)
-    .then(response => {
-      results.value = results.value.concat(response.data);
-      isLoading.value = false;
-    });
+  
+  // Recherche de lieux via l'API
+  try {
+    const locationResults = await vlilleApi.searchLocation(search.value);
+    results.value = results.value.concat(locationResults);
+  } catch (error) {
+    console.error("Erreur lors de la recherche de lieu:", error);
+  } finally {
+    isLoading.value = false;
+  }
 }
 </script>
 

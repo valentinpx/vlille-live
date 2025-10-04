@@ -15,19 +15,20 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, inject } from 'vue';
 import { IonPage, IonContent, onIonViewDidEnter } from '@ionic/vue';
 import { Geolocation } from '@capacitor/geolocation';
-import axios from 'axios';	
 import L from 'leaflet';
 import 'leaflet.markercluster';
 import { Station, StationModalType } from '@/types';
+import type { VLilleApiService } from '@/plugins/api';
 import SearchBar from '@/components/SearchBar.vue';
 import StationModal from '@/components/StationModal.vue';
 
 
 const interval = 300000;
 const defaultPos = { latitude: 50.62925, longitude: 3.057256 };
+const vlilleApi = inject<VLilleApiService>('vlilleApi')!;
 const station_modal = ref<StationModalType>({
   station_id: "",
   open: false,
@@ -72,26 +73,26 @@ function refreshLocation() {
 }
 
 async function refreshStation() {
-  stations.value = await axios.get("https://media.ilevia.fr/opendata/station_status.json")
-    .then(response => {
-      return response.data.data.stations.reduce((dict: { [x: string]: Station; }, station: Station) => {
-        const newIcon = L.icon({
-          iconUrl: station.num_bikes_available === 0 ? "/markers/empty.png" :
-                   station.num_docks_available == 0 ? "/markers/full.png" :
-                   "/markers/station.png",
-          iconSize: [64, 64],
-          iconAnchor: [32, 64],
-          popupAnchor: [0, -64]
-        });
+  try {
+    stations.value = await vlilleApi.getStationStatus();
+    
+    Object.values(stations.value).forEach(station => {
+      const newIcon = L.icon({
+        iconUrl: station.num_bikes_available === 0 ? "/markers/empty.png" :
+                 station.num_docks_available == 0 ? "/markers/full.png" :
+                 "/markers/station.png",
+        iconSize: [64, 64],
+        iconAnchor: [32, 64],
+        popupAnchor: [0, -64]
+      });
 
-        dict[station.station_id] = station;
+      if (markers[station.station_id]) {
         markers[station.station_id].setIcon(newIcon);
-        return dict;
-      }, {});  
-    })
-    .catch(error => {
-      console.error("Error loading stations:", error);
+      }
     });
+  } catch (error) {
+    console.error("Erreur lors du rafraîchissement des stations:", error);
+  }
 }
 
 function closeModal() {
@@ -137,24 +138,23 @@ function openModal(station: Station) {
 }
 
 async function loadMarkers(map: L.Map) {
-  markerCluster = L.markerClusterGroup();
-  await axios.get("https://media.ilevia.fr/opendata/station_information.json")
-    .then(response => {
-      baseStations.value = response.data.data.stations;
-      baseStations.value.map((station: any) => {
-        const marker = L.marker([station.lat, station.lon]);
-        marker.on('click', () => {
-          openModal(station);
-        });
-        markers[station.station_id] = marker;
-        markerCluster.addLayer(marker);
-        return marker;
+  try {
+    markerCluster = L.markerClusterGroup();
+    baseStations.value = await vlilleApi.getStationInformation();
+    
+    baseStations.value.forEach((station: Station) => {
+      const marker = L.marker([station.lat, station.lon]);
+      marker.on('click', () => {
+        openModal(station);
       });
-      map.addLayer(markerCluster);
-    })
-    .catch(error => {
-      console.error("Error loading stations:", error);
+      markers[station.station_id] = marker;
+      markerCluster.addLayer(marker);
     });
+    
+    map.addLayer(markerCluster);
+  } catch (error) {
+    console.error("Erreur lors du chargement des marqueurs:", error);
+  }
 }
 
 onMounted(async () => {

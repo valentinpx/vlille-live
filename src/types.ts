@@ -18,3 +18,27 @@ export interface StationModalType {
   lat: number;
   lon: number;
 }
+
+export interface LocationSearchResult {
+  place_id: number | string;
+  licence?: string;
+  osm_type?: string;
+  osm_id?: number;
+  lat: number | string;
+  lon: number | string;
+  class: string;
+  type?: string;
+  place_rank?: number;
+  importance?: number;
+  addresstype?: string;
+  name: string;
+  display_name: string;
+  boundingbox?: [string, string, string, string];
+  station?: Station;
+}
+
+export interface VLilleApiResponse<T> {
+  data: {
+    stations: T[];
+  };
+}
