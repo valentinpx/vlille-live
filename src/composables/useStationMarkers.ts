@@ -1,6 +1,5 @@
 import L from 'leaflet';
 import { Station } from '@/types';
-import { DEFAULT_SIZES } from '@/utils/stationConfig';
 import { getMarkerStyleConfig, generateMarkerInlineCSS, generateMarkerContentHTML } from '@/utils/markerUtils';
 
 export function useStationMarkers() {
@@ -10,7 +9,6 @@ export function useStationMarkers() {
    */
   function createStationDivIcon(station: Station, size: 'small' | 'medium' | 'large' = 'medium'): L.DivIcon {
     const config = getMarkerStyleConfig(station, size);
-    const sizeConfig = DEFAULT_SIZES[size];
     
     // Configuration des dimensions pour Leaflet
     const iconSize = [config.diameter, config.diameter] as [number, number];
@@ -111,23 +109,6 @@ export function useStationMarkers() {
   function createStationMarker(station: Station, size: 'small' | 'medium' | 'large' = 'medium'): L.Marker {
     const icon = createStationDivIcon(station, size);
     const marker = L.marker([station.lat, station.lon], { icon });
-    
-    // Ajouter des classes CSS pour les interactions hover
-    marker.on('mouseover', function(this: L.Marker) {
-      const element = this.getElement();
-      if (element) {
-        element.style.transform = 'scale(1.1)';
-        element.style.zIndex = '1000';
-      }
-    });
-    
-    marker.on('mouseout', function(this: L.Marker) {
-      const element = this.getElement();
-      if (element) {
-        element.style.transform = 'scale(1)';
-        element.style.zIndex = '500';
-      }
-    });
 
     return marker;
   }

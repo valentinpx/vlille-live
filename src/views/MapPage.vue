@@ -262,14 +262,4 @@ onIonViewDidEnter(() => {
     font-size: 14px !important;
   }
 }
-
-/* Animation pour les marqueurs lors du hover */
-.vlille-station-marker {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.vlille-station-marker:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-}
 </style>
