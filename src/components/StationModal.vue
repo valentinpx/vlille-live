@@ -15,11 +15,19 @@
       <h2>{{ formatDate(station.update) }}</h2>
 
       <ion-card>
-        <ion-card-content>
-          <ion-img
+        <ion-card-content class="card-content">
+          <StationMarkerDisplay 
+            :station="{
+              station_id: station.station_id,
+              name: station.name,
+              lat: station.lat,
+              lon: station.lon,
+              num_bikes_available: station.bikes,
+              num_docks_available: station.spots_available,
+              last_reported: 0
+            }"
+            size="large"
             class="station-icon"
-            :src="getMarkerImg(station.bikes, station.spots_available)"
-            :alt="`Icône de la station (${station.bikes} vélos, ${station.spots_available} places)`"
           />
           <div class="card-text">
             <table>
@@ -63,9 +71,10 @@
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, onBeforeUpdate } from 'vue';
-import { IonModal, IonContent, IonCard, IonCardContent, IonImg, IonButton, IonIcon } from '@ionic/vue';
+import { IonModal, IonContent, IonCard, IonCardContent, IonButton, IonIcon } from '@ionic/vue';
 import { logoApple, navigate, star, starOutline } from 'ionicons/icons';
 import { StationModalType } from '@/types';
+import StationMarkerDisplay from './StationMarkerDisplay.vue';
 
 defineEmits(['close']);
 const favKey = 'favorites';
@@ -94,12 +103,6 @@ async function toggleFav() {
 async function fetchFav() {
   if (!storage) return;
   fav.value = (await storage.get(favKey) || []).includes(station.station_id);
-}
-
-function getMarkerImg(bikes: number, spots: number) {
-  if (bikes === 0) return '/markers/empty-outline.png';
-  if (spots === 0) return '/markers/full-outline.png';
-  return '/markers/station-outline.png';
 }
 
 function formatDate(date: Date | string) {
@@ -158,7 +161,6 @@ ion-card-content {
 }
 
 .card-text {
-  margin: auto;
   color: var(--ion-color-primary-primary);
   font-size: 20px;
   font-family: Arial;
@@ -172,6 +174,13 @@ ion-card-content {
 .number {
   font-size: 22px;
   font-weight: bold;
+}
+
+.card-content {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-text table tr td {

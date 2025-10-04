@@ -24,11 +24,13 @@ import { Station, StationModalType } from '@/types';
 import type { VLilleApiService } from '@/plugins/api';
 import SearchBar from '@/components/SearchBar.vue';
 import StationModal from '@/components/StationModal.vue';
+import { useStationMarkers } from '@/composables/useStationMarkers';
 
 
 const interval = 300000;
 const defaultPos = { latitude: 50.62925, longitude: 3.057256 };
 const vlilleApi = inject<VLilleApiService>('vlilleApi')!;
+const { createStationMarker, createUserLocationIcon, createHereMarker, updateMarkerIcon } = useStationMarkers();
 const station_modal = ref<StationModalType>({
   station_id: "",
   open: false,
@@ -55,14 +57,8 @@ function openLocation(location: { lat: number, lon: number }) {
     } else {
       self_marker = L.marker(
         [location.lat, location.lon],
-        {
-          icon: L.icon({
-            iconUrl: "/markers/me.png",
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-            popupAnchor: [0, -32]
-          })
-        }).addTo(map!);
+        { icon: createUserLocationIcon() }
+      ).addTo(map!);
     }
 }
 
@@ -77,17 +73,8 @@ async function refreshStation() {
     stations.value = await vlilleApi.getStationStatus();
     
     Object.values(stations.value).forEach(station => {
-      const newIcon = L.icon({
-        iconUrl: station.num_bikes_available === 0 ? "/markers/empty.png" :
-                 station.num_docks_available == 0 ? "/markers/full.png" :
-                 "/markers/station.png",
-        iconSize: [64, 64],
-        iconAnchor: [32, 64],
-        popupAnchor: [0, -64]
-      });
-
       if (markers[station.station_id]) {
-        markers[station.station_id].setIcon(newIcon);
+        updateMarkerIcon(markers[station.station_id], station, 'medium');
       }
     });
   } catch (error) {
@@ -116,12 +103,7 @@ function openModal(station: Station) {
       here_marker.setZIndexOffset(1000);
     } else {
       here_marker = L.marker([station.lat, station.lon], {
-        icon: L.icon({
-          iconUrl: "/markers/here.png",
-          iconSize: [64, 64],
-          iconAnchor: [32, 64],
-          popupAnchor: [0, -64]
-        })
+        icon: createHereMarker()
       }).addTo(map!);
     }
   });
@@ -139,11 +121,43 @@ function openModal(station: Station) {
 
 async function loadMarkers(map: L.Map) {
   try {
-    markerCluster = L.markerClusterGroup();
+    markerCluster = L.markerClusterGroup({
+      // Configuration pour améliorer les performances avec beaucoup de marqueurs
+      chunkedLoading: true,
+      chunkInterval: 200,
+      chunkDelay: 50,
+      // Personnalisation des clusters
+      iconCreateFunction: function(cluster) {
+        const childCount = cluster.getChildCount();
+        let c = ' marker-cluster-';
+        if (childCount < 10) {
+          c += 'small';
+        } else if (childCount < 100) {
+          c += 'medium';
+        } else {
+          c += 'large';
+        }
+        
+        return new L.DivIcon({
+          html: '<div><span>' + childCount + '</span></div>',
+          className: 'marker-cluster' + c,
+          iconSize: new L.Point(40, 40)
+        });
+      }
+    });
+    
     baseStations.value = await vlilleApi.getStationInformation();
     
     baseStations.value.forEach((station: Station) => {
-      const marker = L.marker([station.lat, station.lon]);
+      // Créer un marqueur temporaire avec des données par défaut
+      const tempStation = {
+        ...station,
+        num_bikes_available: 0,
+        num_docks_available: 0,
+        last_reported: Date.now() / 1000
+      };
+      
+      const marker = createStationMarker(tempStation, 'medium');
       marker.on('click', () => {
         openModal(station);
       });
@@ -198,5 +212,64 @@ onIonViewDidEnter(() => {
 .leaflet-control-attribution {
   bottom: 20px;
   padding-right: 15px;
+}
+
+/* Styles pour les clusters de marqueurs */
+.marker-cluster-small {
+  background-color: rgba(110, 231, 183, 0.6);
+}
+.marker-cluster-small div {
+  background-color: rgba(110, 231, 183, 0.6);
+}
+
+.marker-cluster-medium {
+  background-color: rgba(241, 211, 87, 0.6);
+}
+.marker-cluster-medium div {
+  background-color: rgba(241, 211, 87, 0.6);
+}
+
+.marker-cluster-large {
+  background-color: rgba(253, 156, 115, 0.6);
+}
+.marker-cluster-large div {
+  background-color: rgba(253, 156, 115, 0.6);
+}
+
+.marker-cluster {
+  background-clip: padding-box;
+  border-radius: 20px;
+}
+.marker-cluster div {
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+  margin-top: 5px;
+  text-align: center;
+  border-radius: 15px;
+  font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+.marker-cluster span {
+  line-height: 30px;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* Styles pour améliorer l'apparence des DivIcon sur mobile */
+@media (max-width: 768px) {
+  .vlille-station-marker {
+    /* Amélioration de la lisibilité sur mobile */
+    font-size: 14px !important;
+  }
+}
+
+/* Animation pour les marqueurs lors du hover */
+.vlille-station-marker {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vlille-station-marker:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 </style>
