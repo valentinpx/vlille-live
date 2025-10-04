@@ -23,7 +23,6 @@
           v-for="station in favoriteStations" 
           :key="station.station_id"
           @click="openStation(station)"
-          button
         >
           <StationMarkerDisplay 
             :station="station" 
@@ -35,33 +34,34 @@
             <p>{{ station.num_bikes_available }} vélos • {{ station.num_docks_available }} places</p>
             <p class="last-update">Mis à jour {{ formatTime(station.last_reported) }}</p>
           </ion-label>
-          <ion-icon :icon="chevronForward" slot="end"></ion-icon>
+          <div slot="end">
+            <ion-button fill="clear" color="medium" @click.stop="toggleFavorite(station)">
+              <ion-icon slot="icon-only" :icon="star" color="warning" />
+            </ion-button>
+            <ion-button fill="clear" color="medium">
+              <ion-icon slot="icon-only" :icon="chevronForward" />
+            </ion-button>
+          </div>
         </ion-item>
       </ion-list>
-
-      <ion-refresher slot="fixed" @ionRefresh="refreshStations($event)">
-        <ion-refresher-content></ion-refresher-content>
-      </ion-refresher>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import { 
-  IonPage, 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonContent, 
-  IonList, 
-  IonItem, 
-  IonLabel, 
-  IonIcon, 
-  IonRefresher, 
-  IonRefresherContent,
-  onIonViewWillEnter 
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonIcon,
+  onIonViewWillEnter
 } from '@ionic/vue';
-import { heartOutline, chevronForward } from 'ionicons/icons';
+import { heartOutline, chevronForward, star } from 'ionicons/icons';
 import { getCurrentInstance, ref, onMounted, computed, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import StationMarkerDisplay from '@/components/StationMarkerDisplay.vue';
@@ -134,15 +134,19 @@ function formatTime(timestamp: number): string {
 function openStation(station: Station) {
   // Naviguer vers la carte et ouvrir la station
   router.push({
-    name: 'tabs',
-    params: { tab: 'map' },
+    path: '/tabs/map',
     query: { station: station.station_id }
   });
 }
 
-async function refreshStations(event: any) {
-  await loadStationData();
-  event.target.complete();
+async function toggleFavorite(station: Station) {
+  if (!storage) return;
+  
+  let favoritesList: string[] = await storage.get('favorites') || [];
+
+  favoritesList = favoritesList.filter(stationId => stationId !== station.station_id);  
+  await storage.set('favorites', favoritesList);
+  loadFavoritePage();
 }
 
 async function loadFavoritePage() {

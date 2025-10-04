@@ -15,8 +15,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, inject } from 'vue';
+import { onMounted, ref, inject, watch } from 'vue';
 import { IonPage, IonContent, onIonViewDidEnter } from '@ionic/vue';
+import { useRoute } from 'vue-router';
 import { Geolocation } from '@capacitor/geolocation';
 import L from 'leaflet';
 import 'leaflet.markercluster';
@@ -30,6 +31,7 @@ import { useStationMarkers } from '@/composables/useStationMarkers';
 const interval = 300000;
 const defaultPos = { latitude: 50.62925, longitude: 3.057256 };
 const vlilleApi = inject<VLilleApiService>('vlilleApi')!;
+const route = useRoute();
 const { createStationMarker, createUserLocationIcon, createHereMarker, updateMarkerIcon } = useStationMarkers();
 const station_modal = ref<StationModalType>({
   station_id: "",
@@ -187,10 +189,34 @@ onMounted(async () => {
   });
 });
 
+// Fonction pour ouvrir une station par son ID
+function openStationById(stationId: string) {
+  const station = baseStations.value.find(s => s.station_id === stationId);
+  if (station) {
+    openModal(station);
+  }
+}
+
+// Surveiller les changements de query parameters
+watch(() => route.query.station, (stationId) => {
+  if (stationId && typeof stationId === 'string' && baseStations.value.length > 0) {
+    // Attendre un peu que les marqueurs soient chargés
+    setTimeout(() => {
+      openStationById(stationId);
+    }, 500);
+  }
+}, { immediate: true });
+
 onIonViewDidEnter(() => {
   setTimeout(() => {
     if (!map) { return }
     map.invalidateSize();
+    
+    // Vérifier s'il y a une station à ouvrir dans l'URL
+    const stationId = route.query.station;
+    if (stationId && typeof stationId === 'string' && baseStations.value.length > 0) {
+      openStationById(stationId);
+    }
   }, 100);
 });
 </script>
