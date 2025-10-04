@@ -31,7 +31,7 @@ import { bicycle, settings, star } from 'ionicons/icons';
 
 <style scoped>
 .ion-page {
-  height: 100vh;
+  height: 100dvh;
 }
 
 div {
