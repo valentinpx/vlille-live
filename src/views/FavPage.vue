@@ -58,7 +58,8 @@ import {
   IonLabel, 
   IonIcon, 
   IonRefresher, 
-  IonRefresherContent 
+  IonRefresherContent,
+  onIonViewWillEnter 
 } from '@ionic/vue';
 import { heartOutline, chevronForward } from 'ionicons/icons';
 import { getCurrentInstance, ref, onMounted, computed, inject } from 'vue';
@@ -144,9 +145,18 @@ async function refreshStations(event: any) {
   event.target.complete();
 }
 
-onMounted(async () => {
+async function loadFavoritePage() {
   await fetchFavorites();
   await loadStationData();
+}
+
+onMounted(async () => {
+  await loadFavoritePage();
+});
+
+// Recharger les favoris à chaque fois que l'utilisateur navigue vers cette page
+onIonViewWillEnter(async () => {
+  await loadFavoritePage();
 });
 </script>
 
