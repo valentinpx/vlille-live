@@ -1,0 +1,60 @@
+{
+  "name": "Vlille Live",
+  "short_name": "Vlille Live",
+  "description": "Consultez en temps réel la disponibilité des vélos et stations V'lille à Lille",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#22C55E",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "travel", "navigation"],
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile/map.png",
+      "sizes": "1179x2556",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Vue carte mobile"
+    },
+    {
+      "src": "/screenshots/mobile/station.png",
+      "sizes": "1179x2556", 
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Détails station mobile"
+    },
+    {
+      "src": "/screenshots/desktop/map.png",
+      "sizes": "1200x630",
+      "type": "image/png", 
+      "form_factor": "wide",
+      "label": "Vue carte desktop"
+    },
+    {
+      "src": "/screenshots/desktop/station.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide", 
+      "label": "Détails station desktop"
+    }
+  ]
+}
