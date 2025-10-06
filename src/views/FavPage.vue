@@ -35,6 +35,13 @@
             <p class="last-update">Mis à jour {{ formatTime(station.last_reported) }}</p>
           </ion-label>
           <div slot="end">
+            <ShareStationButton
+              :station="station"
+              icon-only
+              size="default"
+              fill="clear"
+              @click.stop
+            />
             <ion-button fill="clear" color="medium" @click.stop="toggleFavorite(station)">
               <ion-icon slot="icon-only" :icon="star" color="warning" />
             </ion-button>
@@ -66,6 +73,7 @@ import { heartOutline, chevronForward, star } from 'ionicons/icons';
 import { getCurrentInstance, ref, onMounted, computed, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import StationMarkerDisplay from '@/components/StationMarkerDisplay.vue';
+import ShareStationButton from '@/components/ShareStationButton.vue';
 import type { Station } from '@/types';
 import type { VLilleApiService } from '@/plugins/api';
 

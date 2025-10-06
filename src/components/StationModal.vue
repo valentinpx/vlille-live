@@ -63,47 +63,35 @@
           Maps
         </ion-button>
       </div>
-      <ion-button
-        v-if="shareIsBtn"
-        class="share-btn"
+      <ShareStationButton
+        :station="{
+          station_id: station.station_id,
+          name: station.name,
+          bikes: station.bikes,
+          spots_available: station.spots_available,
+          update: station.update
+        }"
         size="large"
         fill="outline"
-        @click="shareStation"
-      >
-        <ion-icon slot="start" :icon="shareSocial" />
-        Partager
-      </ion-button>
-      <div
-        v-else
-        class="share-link" 
-      >
-        <ion-icon slot="start" :icon="shareSocial" />
-        <a :href="`/tabs/map?station=${station.station_id}`">Lien de partage</a>
-    </div>
+        button-class="share-btn"
+      />
     </ion-content>
   </ion-modal>
 </template>
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, onBeforeUpdate } from 'vue';
-import { IonModal, IonContent, IonCard, IonCardContent, IonButton, IonIcon, onIonViewWillEnter } from '@ionic/vue';
-import { logoApple, navigate, star, starOutline, shareSocial } from 'ionicons/icons';
-import { Share } from '@capacitor/share';
+import { IonModal, IonContent, IonCard, IonCardContent, IonButton, IonIcon } from '@ionic/vue';
+import { logoApple, navigate, star, starOutline } from 'ionicons/icons';
 import { StationModalType } from '@/types';
 import StationMarkerDisplay from './StationMarkerDisplay.vue';
+import ShareStationButton from './ShareStationButton.vue';
 
 defineEmits(['close']);
 const favKey = 'favorites';
 const storage = getCurrentInstance()?.appContext.config.globalProperties.$ionicStorage;
 const { station } = defineProps<{ station: StationModalType }>();
 const fav = ref(false);
-const shareIsBtn = ref(true);
-
-onIonViewWillEnter(() => {
-  Share.canShare().then((r) => {
-    if (!r.value) { shareIsBtn.value = false } 
-  })
-});
 
 onBeforeUpdate(() => {
   fetchFav();
@@ -145,22 +133,7 @@ function formatDate(date: Date | string) {
   return `${d.toLocaleDateString()} à ${hours}:${minutes}`;
 }
 
-function shareStation() {
-  const shareUrl = `https://vlille.live/tabs/map?station=${station.station_id}`
-  const shareText = `🚲 V'Lille - ${station.name}\n\n` +
-    `📍 ${station.bikes} vélos disponibles\n` +
-    `🅿️ ${station.spots_available} places libres\n\n` +
-    `Dernière mise à jour: ${formatDate(station.update)}`
 
-  Share.share({
-    title: `V'Lille - ${station.name}`,
-    text: shareText,
-    url: shareUrl,
-    dialogTitle: "Partager cette station V'Lille"
-  }).catch(() => {
-    shareIsBtn.value = false
-  })
-}
 </script>
 
 <style scoped>
@@ -227,23 +200,7 @@ ion-card-content {
   padding-right: 10px;
 }
 
-.share-btn {
-  width: 100%;
-  margin-top: 10px;
-}
 
-.share-link {
-  width: 100%;
-  margin-top: 20px;
-  text-align: center;
-  color: rgb(77, 141, 255);
-}
-
-.share-link a {
-  margin-top: 10px;
-  margin-left: 5px;
-  text-decoration: none;
-}
 
 .btns {
   display: grid;
@@ -253,5 +210,10 @@ ion-card-content {
 
 .btns ion-button {
   margin: 0;
+}
+
+.share-btn {
+  width: 100%;
+  margin-top: 10px;
 }
 </style>
