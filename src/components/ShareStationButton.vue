@@ -114,6 +114,14 @@ function shareStation() {
     text: shareText,
     url: shareUrl,
     dialogTitle: "Partager cette station V'Lille"
+  }).then((result) => {
+    (window as any).umami.track('station-share', {
+      data: {
+        station_name: props.station.name,
+        station_id: props.station.station_id,
+        shared_to_app: result.activityType || 'unknown',
+      }
+    })
   }).catch((e) => {
     if (e.name !== "AbortError") {
       shareIsBtn.value = false
