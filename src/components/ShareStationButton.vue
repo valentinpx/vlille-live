@@ -115,8 +115,9 @@ function shareStation() {
     url: shareUrl,
     dialogTitle: "Partager cette station V'Lille"
   }).catch((e) => {
-    console.log(e)
-    shareIsBtn.value = false
+    if (e.name !== "AbortError") {
+      shareIsBtn.value = false
+    }
   });
 }
 </script>
