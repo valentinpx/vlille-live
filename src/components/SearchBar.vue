@@ -39,7 +39,7 @@
 <script setup lang="ts">
 import { IonSearchbar, IonList, IonItem, IonLabel } from '@ionic/vue';
 import { locate, location, storefront, subway, leaf, business, bicycle } from 'ionicons/icons';
-import { defineEmits, ref, inject } from 'vue';
+import { ref, inject } from 'vue';
 import { IonButton, IonIcon, IonSpinner } from '@ionic/vue';
 import { Station, LocationSearchResult } from '@/types';
 import type { VLilleApiService } from '@/plugins/api';

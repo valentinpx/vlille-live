@@ -124,11 +124,10 @@ function openModal(station: Station) {
 async function loadMarkers(map: L.Map) {
   try {
     markerCluster = L.markerClusterGroup({
-      // Configuration pour améliorer les performances avec beaucoup de marqueurs
       chunkedLoading: true,
       chunkInterval: 200,
       chunkDelay: 50,
-      // Personnalisation des clusters
+
       iconCreateFunction: function(cluster) {
         const childCount = cluster.getChildCount();
         let c = ' marker-cluster-';
@@ -151,7 +150,6 @@ async function loadMarkers(map: L.Map) {
     baseStations.value = await vlilleApi.getStationInformation();
     
     baseStations.value.forEach((station: Station) => {
-      // Créer un marqueur temporaire avec des données par défaut
       const tempStation = {
         ...station,
         num_bikes_available: 0,
@@ -189,21 +187,18 @@ onMounted(async () => {
   });
 });
 
-// Fonction pour ouvrir une station par son ID
 function openStationById(stationId: string) {
-  const station = baseStations.value.find(s => s.station_id === stationId);
-  if (station) {
-    openModal(station);
-  }
+  setTimeout(() => {
+    const station = baseStations.value.find(s => s.station_id === stationId);
+    if (station) {
+      openModal(station);
+    }
+  }, 500);
 }
 
-// Surveiller les changements de query parameters
 watch(() => route.query.station, (stationId) => {
   if (stationId && typeof stationId === 'string' && baseStations.value.length > 0) {
-    // Attendre un peu que les marqueurs soient chargés
-    setTimeout(() => {
-      openStationById(stationId);
-    }, 500);
+    openStationById(stationId);
   }
 }, { immediate: true });
 
@@ -211,8 +206,7 @@ onIonViewDidEnter(() => {
   setTimeout(() => {
     if (!map) { return }
     map.invalidateSize();
-    
-    // Vérifier s'il y a une station à ouvrir dans l'URL
+
     const stationId = route.query.station;
     if (stationId && typeof stationId === 'string' && baseStations.value.length > 0) {
       openStationById(stationId);
