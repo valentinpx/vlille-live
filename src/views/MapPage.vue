@@ -64,8 +64,8 @@ function openLocation(location: { lat: number, lon: number }) {
     }
 }
 
-function refreshLocation() {
-  Geolocation.getCurrentPosition().catch(() => ({ coords: defaultPos })).then(position => {
+async function refreshLocation() {
+  await Geolocation.getCurrentPosition().catch(() => ({ coords: defaultPos })).then(position => {
     openLocation({ lat: position.coords.latitude, lon: position.coords.longitude });
   });
 }
@@ -189,28 +189,29 @@ onMounted(async () => {
 
 function openStationById(stationId: string) {
   setTimeout(() => {
-    const station = baseStations.value.find(s => s.station_id === stationId);
-    if (station) {
-      openModal(station);
-    }
-  }, 500);
+      const station = baseStations.value.find(s => s.station_id === stationId);
+      if (station) {
+        openModal(station);
+      }
+  }, 500)
 }
 
 watch(() => route.query.station, (stationId) => {
   if (stationId && typeof stationId === 'string' && baseStations.value.length > 0) {
-    openStationById(stationId);
+    openStationById(stationId)
   }
 }, { immediate: true });
 
 onIonViewDidEnter(() => {
   setTimeout(() => {
-    if (!map) { return }
-    map.invalidateSize();
+    map?.invalidateSize()
 
+
+    refreshLocation().finally(() => {
     const stationId = route.query.station;
     if (stationId && typeof stationId === 'string' && baseStations.value.length > 0) {
       openStationById(stationId);
-    }
+    }})
   }, 100);
 });
 </script>
